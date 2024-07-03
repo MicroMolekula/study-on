@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Course index{% endblock %}
+
+{% block body %}
+    <h1>Курсы</h1>
+
+    {% for course in courses %}
+        <a href="{{ path('app_course_show', {'id': course.id}) }}"><h2>{{ course.title }}</h2></a>
+        <div>{{ course.description }}</div>
+    {% endfor %}
+    <br>
+    <a href="{{ path('app_course_new') }}">Добавить курс</a>
+{% endblock %}
