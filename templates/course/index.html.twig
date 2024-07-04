@@ -1,14 +1,25 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Course index{% endblock %}
+{% block title %}StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Курсы</h1>
+    <h1 class="mt-2">Курсы</h1>
 
-    {% for course in courses %}
-        <a href="{{ path('app_course_show', {'id': course.id}) }}"><h2>{{ course.title }}</h2></a>
-        <div>{{ course.description }}</div>
-    {% endfor %}
-    <br>
-    <a href="{{ path('app_course_new') }}">Добавить курс</a>
+    <div class="row row-cols-1 row-cols-md-2 g-4 mt-3">
+        {% for course in courses %}
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ course.title }}</h5>
+                        <p class="card-text">{{ course.description }}</p>
+                        <a href="{{ path('app_course_show', {'id': course.id}) }}" class="btn btn-link">Пройти</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <div class="mt-3 mb-3" style="width: 100%; border-bottom: 1px solid #A0A0A4;"></div>
+
+    <a href="{{ path('app_course_new') }}" class="btn btn-outline-dark">Новый курс</a>
 {% endblock %}

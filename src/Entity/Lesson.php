@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\LessonRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LessonRepository::class)]
 class Lesson
@@ -18,12 +19,16 @@ class Lesson
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
+    #[Assert\NotBlank]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[Assert\NotBlank]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
+    #[Assert\LessThanOrEqual(10000)]
+    #[Assert\GreaterThanOrEqual(1)]
     #[ORM\Column(options: ['check' => 'ordering <= 10000'])]
     private ?int $ordering = null;
 

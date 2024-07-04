@@ -6,8 +6,11 @@ use App\Repository\CourseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CourseRepository::class)]
+#[UniqueEntity('chars_code', message: 'Символьный код должен быть уникальным')]
 class Course
 {
     #[ORM\Id]
@@ -15,9 +18,19 @@ class Course
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Символьный код не должен превышать 255 символов"
+    )]
     #[ORM\Column(length: 255, unique: true)]
     private ?string $chars_code = null;
 
+    #[Assert\NotBlank(message: "Заполните это поле")]
+    #[Assert\Length(
+        max: 255,
+        maxMessage: "Название не должно превышать 255 символов"
+    )]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 

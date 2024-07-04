@@ -1,15 +1,19 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Lesson{% endblock %}
+{% block title %}Обновление урока{% endblock %}
 
 {% block body %}
     <h1>{{ lesson.title }}</h1>
 
-    
+    <div>Курс: <a href="{{ path('app_course_show', {'id': lesson.course.id}) }}">{{ lesson.course.title }}</a></div>
+    <br>
 
-    {{ include('lesson/_form.html.twig', {'button_label': 'Update'}) }}
+    {{ include('lesson/_form.html.twig', {'button_label': 'Обновить'}) }}
 
-    <a href="{{ path('app_lesson_index') }}">back to list</a>
+    <div class="mt-3 mb-3" style="width: 100%; border-bottom: 1px solid #A0A0A4;"></div>
 
-    {{ include('lesson/_delete_form.html.twig') }}
+    <div style="display:flex; flex-direction: row; gap: 10px;">
+        <a href="{{ path('app_course_show', {'id': lesson.course.id}) }}" class="btn btn-outline-primary">Назад к списку</a>
+        {{ include('lesson/_delete_form.html.twig') }}
+    </div>
 {% endblock %}

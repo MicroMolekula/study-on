@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Course;
 
 #[Route('/lessons')]
 class LessonController extends AbstractController
@@ -26,14 +27,17 @@ class LessonController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $lesson = new Lesson();
-        $form = $this->createForm(LessonType::class, $lesson);
+        $courseId = $request->get('course_id');
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['id' => $courseId]);
+        $lesson->setCourse($course);
+        $form = $this->createForm(LessonType::class, $lesson);   
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($lesson);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_lesson_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_course_show', ['id' => $lesson->getCourse()->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('lesson/new.html.twig', [
@@ -59,7 +63,7 @@ class LessonController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_lesson_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_course_show', ['id' => $lesson->getCourse()->getId()], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('lesson/edit.html.twig', [
@@ -76,6 +80,6 @@ class LessonController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('app_lesson_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_course_show', ['id' => $lesson->getCourse()->getId()], Response::HTTP_SEE_OTHER);
     }
 }
