@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+{{status_code}}/StydyOn
+{% endblock %}
+
+{% block body %}
+
+<div style="display: flex; flex-direction: column; align-items: center; margin-top: 3rem; gap: 30px;">
+<h1>Ошибка "{{status_code}} {{status_text}}"</h1>
+<div style="width: 500px; font-size: 20px; text-align:center;">
+Кажется что-то пошло не так, произошла внутренняя ошибка сервере.
+</div>
+<a href="{{ path('app_course_index') }}" class="btn btn-outline-primary">Главная страница</a>
+</div>
+
+{% endblock %}

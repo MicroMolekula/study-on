@@ -6,7 +6,7 @@ use App\Entity\Course;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
-class CourseFixture extends Fixture
+class CourseFixtures extends Fixture
 {
     private array $data = [
         [

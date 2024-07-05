@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+404/StydyOn
+{% endblock %}
+
+{% block body %}
+
+<div style="display: flex; flex-direction: column; align-items: center; margin-top: 3rem; gap: 30px;">
+<h1>Ошибка {{status_code}}</h1>
+<div style="width: 500px; font-size: 20px; text-align:center;">
+Кажется что-то пошло не так, страницу которую вы запрашиваете не найдена, вы ввели не верный адрес или страница была удалена.
+</div>
+<a href="{{ path('app_course_index') }}" class="btn btn-outline-primary">Главная страница</a>
+</div>
+
+{% endblock %}

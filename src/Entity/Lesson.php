@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Lesson
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: "SEQUENCE")]
     #[ORM\Column]
     private ?int $id = null;
 
@@ -19,16 +19,16 @@ class Lesson
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: "Заполните это поле")]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: "Заполните это поле")]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
-    #[Assert\LessThanOrEqual(10000)]
-    #[Assert\GreaterThanOrEqual(1)]
+    #[Assert\LessThanOrEqual(10000, message: "Порядковый номер урока должен быть меньше или равен 10000")]
+    #[Assert\GreaterThanOrEqual(1, message: "Порядковый номер урока должен быть больше или равен 1")]
     #[ORM\Column(options: ['check' => 'ordering <= 10000'])]
     private ?int $ordering = null;
 

@@ -14,11 +14,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 class Course
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
+    #[ORM\GeneratedValue(strategy: "SEQUENCE")]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: 'Заполните это поле')]
     #[Assert\Length(
         max: 255,
         maxMessage: "Символьный код не должен превышать 255 символов"
