@@ -16,7 +16,7 @@ class Lesson
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'lessons')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
     private ?Course $course = null;
 
     #[Assert\NotBlank(message: "Заполните это поле")]
