@@ -2,16 +2,21 @@
 
 namespace App\Security;
 
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class User implements UserInterface
 {
-    private $email;
+    private string $email;
 
     /**
      * @var list<string> The user roles
      */
     private $roles = [];
+
+    private string $apiToken;
+
+    private float $balance;
 
     public function getEmail(): ?string
     {
@@ -56,6 +61,30 @@ class User implements UserInterface
     {
         $this->roles = $roles;
 
+        return $this;
+    }
+
+    public function getApiToken(): string
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(string $apiToken): static
+    {
+        $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    public function getBalance(): float
+    {
+        return $this->balance;
+    }
+
+    public function setBalance(float $balance): static
+    {
+        $this->balance = $balance;
+        
         return $this;
     }
 
