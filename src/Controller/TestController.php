@@ -12,11 +12,7 @@ class TestController extends AbstractController
     #[Route('/test', name: 'app_test')]
     public function index(BillingClient $billingClient): Response
     {
-        $token = $billingClient->auth([
-            'username' => 'krasikov@gmail.com',
-            'password' => 'zxc12345',
-        ])['token'];
-        $data = $billingClient->userCurrent($token);
+        $data = $this->getUser();
         dd($data);
         return $this->render('test/index.html.twig', [
             'token' => '',

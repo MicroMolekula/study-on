@@ -20,6 +20,7 @@
     </div>
     
     <div class="mt-3 mb-3" style="width: 100%; border-bottom: 1px solid #A0A0A4;"></div>
-
-    <a href="{{ path('app_course_new') }}" class="btn btn-outline-dark">Новый курс</a>
+    {% if is_granted('ROLE_SUPER_ADMIN') %}
+        <a href="{{ path('app_course_new') }}" class="btn btn-outline-dark">Новый курс</a>
+    {% endif %}
 {% endblock %}

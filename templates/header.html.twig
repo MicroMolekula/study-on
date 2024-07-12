@@ -1,13 +1,35 @@
+<style>
+.logo:active, 
+.logo:hover,
+.logo {
+  text-decoration: none;
+  color: black;
+}
+</style>
+
 <div 
     class="bg-light width-10 w-100" 
     style="
         height: 50px; 
         display: flex; 
-        align-items: center; 
-        padding-left: 1rem; 
+        align-items: center;
+        justify-content: space-between; 
+        padding-left: 1rem;
+        padding-right: 1rem; 
         font-weight: 600; 
         font-size: 18px;
     "
 >
-    StudyOn 
+    <a href="{{ path('app_course_index') }}" class="logo">StudyOn</a>
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <div style="display:flex; gap: 20px;">
+            <a class="btn btn-outline-secondary" href="{{ path('app_profile') }}">Профиль</a>
+            <a class="btn btn-outline-secondary" href="{{ path('app_logout') }}">Выйти</a>
+        </div>
+    {% else %}
+        <div style="display:flex; gap: 20px;">
+            <a class="btn btn-outline-secondary" href="{{ path('app_register') }}">Зарегистрироваться</a>
+            <a class="btn btn-outline-secondary" href="{{ path('app_login') }}">Войти</a>
+        </div>
+    {% endif %}
 </div>

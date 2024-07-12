@@ -2,6 +2,9 @@
 
 namespace App\Security;
 
+use App\Exception\BillingUnavailableException;
+use App\Service\BillingClient;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -11,6 +14,12 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
+
+    public function __construct(
+        private BillingClient $billingClient,
+        private Security $security,
+    ) {
+    }
 
     /**
      * Symfony calls this method if you use features like switch_user
@@ -23,9 +32,18 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
      */
     public function loadUserByIdentifier($identifier): UserInterface
     {
-        $user = new User();
-
-        return $user;
+        try {
+            $responseBilling = $this->billingClient->userCurrent($identifier);
+            if (isset($responseBilling['username'])) {
+                $user = new User();
+                $user->setEmail($responseBilling['username'])
+                    ->setApiToken($identifier)
+                    ->setRoles($responseBilling['roles']);
+                return $user;
+            }
+        } catch (BillingUnavailableException $e) {
+            throw new UserNotFoundException();
+        }
     }
 
     /**
@@ -53,9 +71,11 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', $user::class));
         }
 
-        // Return a User object after making sure its data is "fresh".
-        // Or throw a UsernameNotFoundException if the user no longer exists.
-        throw new \Exception('TODO: fill in refreshUser() inside '.__FILE__);
+        $userData = $this->billingClient->userCurrent($user->getApiToken());
+        if (isset($userData)) {
+            return $user;
+        }
+        throw new UserNotFoundException();
     }
 
     /**
