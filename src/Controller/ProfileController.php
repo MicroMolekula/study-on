@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ProfileController extends AbstractController
 {
     #[Route('/profile', name: 'app_profile')]
-    public function index(BillingClient $billingClient): Response
+    public function __invoke(BillingClient $billingClient): Response
     {
         /** @var User $user */
         $user = $this->getUser();

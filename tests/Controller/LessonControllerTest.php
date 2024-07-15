@@ -7,6 +7,7 @@ use App\DataFixtures\LessonFixtures;
 use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Tests\AbstractTest;
+use Symfony\Component\Mime\Message;
 
 class LessonControllerTest extends AbstractTest
 {
@@ -21,7 +22,7 @@ class LessonControllerTest extends AbstractTest
     // Проверка вывода уроков на странице курса
     public function testLessonIndex(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
         $client->followRedirects();
         $client->request('GET', '/courses');
@@ -39,10 +40,21 @@ class LessonControllerTest extends AbstractTest
     // Проверка вывода информации урока
     public function testLessonShow(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
+        $this->replaceServiceBillingClient();
         $manager = static::getContainer()->get('doctrine')->getManager();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('user@mail.com');
+        $form['password']->setValue('user123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Пройти');
         $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
         $lessonTest = $course->getLessons()[0];
@@ -60,10 +72,21 @@ class LessonControllerTest extends AbstractTest
     // Проврка формы на добавление нового урока с пустыми полями ввода
     public function testLessonNewWithEmptyFields(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('admin@mail.com');
+        $form['password']->setValue('admin123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $client->clickLink('Пройти');
         $crawler = $client->clickLink('Добавить урок');
         $this->assertResponseIsSuccessful();
@@ -82,10 +105,21 @@ class LessonControllerTest extends AbstractTest
     // Проверка формы на добавление нового урока с полем порядка больше 10000
     public function testLessonNewWithBadOrdering(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('admin@mail.com');
+        $form['password']->setValue('admin123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $client->clickLink('Пройти');
         $crawler = $client->clickLink('Добавить урок');
         $this->assertResponseIsSuccessful();
@@ -104,10 +138,21 @@ class LessonControllerTest extends AbstractTest
     // Проверка на добавление нового урока
     public function testLessonNew(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('admin@mail.com');
+        $form['password']->setValue('admin123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Пройти');
         $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
         $crawler = $client->clickLink('Добавить урок');
@@ -140,10 +185,21 @@ class LessonControllerTest extends AbstractTest
     // Проверка формы на изменнение уже существующего урока
     public function testLessonEdit(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('admin@mail.com');
+        $form['password']->setValue('admin123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Пройти');
         $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
         $lessonTest = $course->getLessons()[0];
@@ -181,10 +237,21 @@ class LessonControllerTest extends AbstractTest
     // Проверка формы на уделение урока
     public function testLessonDelete(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('admin@mail.com');
+        $form['password']->setValue('admin123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Пройти');
         $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
         $lessonTest = $course->getLessons()[0];
@@ -197,5 +264,79 @@ class LessonControllerTest extends AbstractTest
         $this->assertResponseIsSuccessful();
         $lesson = $manager->getRepository(Lesson::class)->findOneBy(['title' => $lessonTest->getTitle()]);
         $this->assertNull($lesson);
+    }
+
+    public function testLessonShowFailed(): void
+    {
+        $client = $this->client;
+        $manager = static::getContainer()->get('doctrine')->getManager();
+        $client->followRedirects();
+        $this->replaceServiceBillingClient();
+        $client->request('GET', '/courses');
+        $crawler = $client->clickLink('Пройти');
+        $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
+        $lesson = $manager->getRepository(Lesson::class)->findOneBy(['course' => $course]);
+        $client->clickLink($lesson->getTitle());
+        $this->assertResponseIsSuccessful();
+        $this->assertAnySelectorTextNotContains('h1', $lesson->getTitle());
+        $this->assertAnySelectorTextContains('h1', 'Войдите в свой аккаунт');
+    }
+
+    public function testLessonNewFailed(): void
+    {
+        $client = $this->client;
+        $manager = static::getContainer()->get('doctrine')->getManager();
+        $client->followRedirects();
+        $this->replaceServiceBillingClient();
+        $client->request('GET', '/courses');
+        $crawler = $client->clickLink('Пройти');
+        
+        // Проверка есть ли не у авторизованного пользователя кнопка добавить урок
+        $this->assertSelectorTextNotContains('a', 'Добавить урок');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('user@mail.com');
+        $form['password']->setValue('user123');
+        $crawler = $client->submit($form);
+        $crawler = $client->clickLink('Пройти');
+        $this->assertResponseIsSuccessful();
+
+        // Проверка есть ли у обычного авторизованного пользователя кнопка добавить урок
+        $this->assertSelectorTextNotContains('a', 'Добавить урок');
+    }
+
+    public function testLessonEditDeleteFailed(): void
+    {
+        $client = $this->client;
+        $manager = static::getContainer()->get('doctrine')->getManager();
+        $client->followRedirects();
+        $this->replaceServiceBillingClient();
+        $client->request('GET', '/courses');
+        $crawler = $client->clickLink('Пройти');
+
+        $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
+        $lesson = $manager->getRepository(Lesson::class)->findOneBy(['course' => $course]);
+        $client->clickLink($lesson->getTitle());
+
+        $this->assertResponseIsSuccessful();
+        $this->assertAnySelectorTextNotContains('a', 'Редактировать');
+        $this->assertAnySelectorTextNotContains('a', 'Удалить');
+        $this->assertAnySelectorTextContains('h1', 'Войдите в свой аккаунт');
+
+        // Авторизация
+        $client->request('GET', '/courses');
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('user@mail.com');
+        $form['password']->setValue('user123');
+        $crawler = $client->submit($form);
+
+        $this->assertResponseIsSuccessful();
+        $this->assertAnySelectorTextNotContains('a', 'Редактировать');
+        $this->assertAnySelectorTextNotContains('a', 'Удалить');
     }
 }

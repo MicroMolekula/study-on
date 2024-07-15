@@ -41,6 +41,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
                     ->setRoles($responseBilling['roles']);
                 return $user;
             }
+            throw new UserNotFoundException();
         } catch (BillingUnavailableException $e) {
             throw new UserNotFoundException();
         }

@@ -24,7 +24,7 @@ class RegisterController extends AbstractController
     }
 
     #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
-    public function index(Request $request): Response
+    public function __invoke(Request $request): Response
     {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_profile', [], Response::HTTP_SEE_OTHER);

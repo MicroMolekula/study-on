@@ -20,7 +20,7 @@ class CourseControllerTest extends AbstractTest
 
     public function testCourseIndex(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
         $crawler = $client->request('GET', '/courses/');
         $this->assertResponseIsSuccessful();
@@ -33,20 +33,11 @@ class CourseControllerTest extends AbstractTest
     public function testCourseShow(): void
     {
 
-        $client = static::getClient();
+        $client = $this->client;
         $client->followRedirects();
         $manager = static::getContainer()->get('doctrine')->getManager();
         $crawler = $client->request('GET', '/courses');
         $this->assertResponseIsSuccessful();
-        
-        // Проверка правильного вывода количества уроков для одного курса
-        // $crawler = $client->clickLink('Пройти');
-        // $this->assertResponseIsSuccessful();
-        // $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
-        // $this->assertEquals(
-        //     count($manager->getRepository(Lesson::class)->findBy(['course' => $course])),
-        //     $crawler->filter('ol > li')->count()
-        // );
 
         // Проверка правильного вывода количества уроков на всех страницах курсов
         foreach ($crawler->filter('div.card  a') as $link) {
@@ -67,9 +58,21 @@ class CourseControllerTest extends AbstractTest
     // Проверка формы добавления нового курса при вводе пустых значений полей
     public function testCourseNewWithEmptyFields(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+        $this->assertResponseIsSuccessful();
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email'] = 'admin@mail.com';
+        $form['password'] = 'admin123';
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Новый курс');
         $this->assertResponseIsSuccessful();
 
@@ -85,9 +88,20 @@ class CourseControllerTest extends AbstractTest
     // Проверка формы добавления нового курса при вводе уже существующего кода курса
     public function testCourseNewWithNotUniqueCode(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email'] = 'admin@mail.com';
+        $form['password'] = 'admin123';
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Новый курс');
         $this->assertResponseIsSuccessful();
 
@@ -103,10 +117,21 @@ class CourseControllerTest extends AbstractTest
     // Проверка формы добавления нового курса с валидными данными
     public function testCourseNew(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email'] = 'admin@mail.com';
+        $form['password'] = 'admin123';
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Новый курс');
         $this->assertResponseIsSuccessful();
         
@@ -130,10 +155,21 @@ class CourseControllerTest extends AbstractTest
     // Провекра изменения курса
     public function testCourseEdit(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses/');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email'] = 'admin@mail.com';
+        $form['password'] = 'admin123';
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Пройти');
         $courseTitle = $crawler->filter('h1')->text();
         $crawler = $client->clickLink('Редактировать');
@@ -166,10 +202,21 @@ class CourseControllerTest extends AbstractTest
     // Проверка удаления курса
     public function testCourseDelete(): void
     {
-        $client = static::getClient();
+        $client = $this->client;
         $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
         $client->followRedirects();
         $client->request('GET', '/courses');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email'] = 'admin@mail.com';
+        $form['password'] = 'admin123';
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         $crawler = $client->clickLink('Пройти');
         $courseTitle = $crawler->filter('h1')->text();
         $this->assertResponseIsSuccessful();
@@ -182,5 +229,67 @@ class CourseControllerTest extends AbstractTest
         );
         $course = $manager->getRepository(Course::class)->findOneBy(['title' => $courseTitle]);
         $this->assertNull($course);
+    }
+
+    public function testCourseNewFailed(): void
+    {
+        $client = $this->client;
+        $this->replaceServiceBillingClient();
+        $client->followRedirects();
+        $client->request('GET', '/courses');
+        $this->assertResponseIsSuccessful();
+
+        // Проверка, есть ли не у авторизованного пользователя кнопка "Новый курс"
+        $this->assertAnySelectorTextNotContains('a', 'Новый курс');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('user@mail.com');
+        $form['password']->setValue('user123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
+        // Проверка, есть ли у обычного авторизованного пользователя кнопка "Новый курс"
+        $this->assertAnySelectorTextNotContains('a', 'Новый курс');
+
+        // Проверка может ли обычный авторизованный пользователь перейти на страницу создания нового курса
+        $client->request('GET', '/courses/new');
+        $this->assertResponseStatusCodeSame(403);
+    }
+
+    public function testCourseEditDeleteFailed(): void
+    {
+        $client = $this->client;
+        $manager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
+        $client->followRedirects();
+        $client->request('GET', '/courses');
+        $this->assertResponseIsSuccessful();
+        $crawler = $client->clickLink('Пройти');
+
+        // Проверка есть ли не у авторизованного пользователя кнопка "Редактировать"
+        $this->assertAnySelectorTextNotContains('a', 'Редактировать');
+        $this->assertAnySelectorTextNotContains('a', 'Удалить');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email']->setValue('user@mail.com');
+        $form['password']->setValue('user123');
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+        $crawler = $client->clickLink('Пройти');
+
+        // Проверка есть ли у обычного авторизованного пользователя кнопка "Редактировать"
+        $this->assertAnySelectorTextNotContains('a', 'Редактировать');
+        $this->assertAnySelectorTextNotContains('a', 'Удалить');
+
+        $courseId = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()])->getId();
+        // Проверка может ли обычный авторизованный пользователь перейти на страницу редактирования курса
+        $client->request('GET', '/courses/' . $courseId. '/edit');
+        $this->assertResponseStatusCodeSame(403);
     }
 }
