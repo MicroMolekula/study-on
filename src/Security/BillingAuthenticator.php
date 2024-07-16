@@ -57,6 +57,7 @@ class BillingAuthenticator extends AbstractLoginFormAuthenticator
                     $userData = $this->billingClient->userCurrent($responseBilling['token']);
                     $user->setEmail($userData['username'])
                         ->setApiToken($responseBilling['token'])
+                        ->setRefreshToken($responseBilling['refresh_token'])
                         ->setRoles($userData['roles']);
                 } else {
                     throw new CustomUserMessageAuthenticationException($responseBilling['message']);

@@ -46,7 +46,8 @@ class RegisterController extends AbstractController
                     $userNew = new User();
                     $userNew->setEmail($user->email)
                         ->setRoles($responseBilling['roles'])
-                        ->setApiToken($responseBilling['token']);
+                        ->setApiToken($responseBilling['token'])
+                        ->setRefreshToken($responseBilling['refresh_token']);
             
                     $this->userAuthenticator->authenticateUser(
                         $userNew, 

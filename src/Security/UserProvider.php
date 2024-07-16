@@ -4,6 +4,7 @@ namespace App\Security;
 
 use App\Exception\BillingUnavailableException;
 use App\Service\BillingClient;
+use App\Service\JwtTokenManager;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
@@ -18,6 +19,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
     public function __construct(
         private BillingClient $billingClient,
         private Security $security,
+        private JwtTokenManager $jwtManager,
     ) {
     }
 
@@ -38,6 +40,7 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
                 $user = new User();
                 $user->setEmail($responseBilling['username'])
                     ->setApiToken($identifier)
+                    ->setRefreshToken($responseBilling['refresh_token'])
                     ->setRoles($responseBilling['roles']);
                 return $user;
             }
@@ -71,12 +74,17 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', $user::class));
         }
-
-        $userData = $this->billingClient->userCurrent($user->getApiToken());
-        if (isset($userData)) {
-            return $user;
+        
+        if ($this->jwtManager->isExpired($user->getApiToken())) {
+            try {
+                $newToken  = $this->billingClient->refreshToken($user->getRefreshToken())['token'];
+                $user->setApiToken($newToken);
+            } catch (BillingUnavailableException $ex) {
+                throw new UserNotFoundException();
+            }
         }
-        throw new UserNotFoundException();
+
+        return $user;
     }
 
     /**
