@@ -12,6 +12,12 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ course.title }}</h5>
                         <p class="card-text">{{ course.description }}</p>
+                        
+                        {% if course.type != 'free' %}
+                            <div>Цена: {{course.price}}</div>
+                        {% else %}
+                            <div>Бесплатно</div>
+                        {% endif %}
                         <a href="{{ path('app_course_show', {'id': course.id}) }}" class="btn btn-link">Пройти</a>
                     </div>
                 </div>

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Course;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
+use App\Service\BillingClient;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,11 +15,37 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/courses')]
 class CourseController extends AbstractController
 {
+    public function __construct(
+        private BillingClient $billingClient,
+    ) {
+    }
+
     #[Route('/', name: 'app_course_index', methods: ['GET'])]
     public function index(CourseRepository $courseRepository): Response
     {
+        $coursesData = $courseRepository->findAll();
+        $courses = [];
+
+        foreach ($coursesData as $courseData) {
+            $billingResponse = $this->billingClient->getCourse($courseData->getCharsCode());
+            $course = [
+                'id' => $courseData->getId(),
+                'title' => $courseData->getTitle(),
+                'description' => $courseData->getDescription(),
+            ];
+            if(isset($billingResponse['error_code'])) {
+                $course['type'] = 'free';
+            } else if (isset($billingResponse['type'])) {
+                $course['type'] = $billingResponse['type'];
+            }
+            if(isset($billingResponse['price'])) {
+                $course['price'] = $billingResponse['price'];
+            }
+            $courses[] = $course;
+        }
+
         return $this->render('course/index.html.twig', [
-            'courses' => $courseRepository->findAll(),
+            'courses' => $courses,
         ]);
     }
 
