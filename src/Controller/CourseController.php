@@ -28,20 +28,18 @@ class CourseController extends AbstractController
 
         foreach ($coursesData as $courseData) {
             $billingResponse = $this->billingClient->getCourse($courseData->getCharsCode());
+            
             $course = [
                 'id' => $courseData->getId(),
                 'title' => $courseData->getTitle(),
                 'description' => $courseData->getDescription(),
+                'type' => isset($billingResponse['type']) ? $billingResponse['type'] : 'free',
+                'price' => isset($billingResponse['price']) ? $billingResponse['price'] : null,
             ];
-            if(isset($billingResponse['error_code'])) {
-                $course['type'] = 'free';
-            } else if (isset($billingResponse['type'])) {
-                $course['type'] = $billingResponse['type'];
-            }
-            if(isset($billingResponse['price'])) {
-                $course['price'] = $billingResponse['price'];
-            }
-            $courses[] = $course;
+
+            $courses[] = array_filter($course, function($var) {
+                return $var !== null;
+            });
         }
 
         return $this->render('course/index.html.twig', [

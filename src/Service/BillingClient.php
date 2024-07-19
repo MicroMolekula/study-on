@@ -99,12 +99,12 @@ class BillingClient
     public function getTransactions(
         string $token, 
         string $type = '', 
-        string $course_code = '', 
-        bool $skip_expired = false,
+        string $courseCode = '', 
+        bool $skipExpired = false,
     ): array
     {
         return $this->request(
-            url: "/api/v1/transactions/?type=$type&course_code=$course_code&skip_expired=$skip_expired",
+            url: "/api/v1/transactions/?type=$type&course_code=$courseCode&skip_expired=$skipExpired",
             token: $token,
         );
     }

@@ -13,10 +13,8 @@ class TestController extends AbstractController
     #[Route('/test', name: 'app_test')]
     public function index(BillingClient $billingClient): Response
     {
-        // $data = $billingClient->userCurrent(
-        //     token: $this->getUser()->getApiToken(),
-        // );
-        // dd($data);
+        $user = $this->getUser();
+        dd($user);
         return $this->render('test/index.html.twig', [
             'token' => '',
         ]);
