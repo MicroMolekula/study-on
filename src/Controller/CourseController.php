@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Service\BillingClient;
+use App\Service\PurchaseControl;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class CourseController extends AbstractController
 {
     public function __construct(
+        private PurchaseControl $purchaseControl,
         private BillingClient $billingClient,
     ) {
     }
@@ -27,19 +29,7 @@ class CourseController extends AbstractController
         $courses = [];
 
         foreach ($coursesData as $courseData) {
-            $billingResponse = $this->billingClient->getCourse($courseData->getCharsCode());
-            
-            $course = [
-                'id' => $courseData->getId(),
-                'title' => $courseData->getTitle(),
-                'description' => $courseData->getDescription(),
-                'type' => isset($billingResponse['type']) ? $billingResponse['type'] : 'free',
-                'price' => isset($billingResponse['price']) ? $billingResponse['price'] : null,
-            ];
-
-            $courses[] = array_filter($course, function($var) {
-                return $var !== null;
-            });
+           $courses[] = $this->purchaseControl->getDataCourse($courseData);
         }
 
         return $this->render('course/index.html.twig', [
@@ -70,8 +60,16 @@ class CourseController extends AbstractController
     #[Route('/{id}', name: 'app_course_show', methods: ['GET'])]
     public function show(Course $course): Response
     {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $userBalance = $this->billingClient->userCurrent($user->getApiToken())['balance'];
+
+        $course = $this->purchaseControl->getDataCourse($course);
+
         return $this->render('course/show.html.twig', [
             'course' => $course,
+            'user_balance' => $userBalance
         ]);
     }
 
@@ -102,5 +100,23 @@ class CourseController extends AbstractController
         }
 
         return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/{id}/pay', name: 'app_course_pay')]
+    public function pay(Course $course): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $billingResponse = $this->billingClient->payCourse($user->getApiToken(), $course->getCharsCode());
+
+        if (isset($billingResponse['error_code'])) {
+            $this->addFlash('error', $billingResponse['message']);
+            return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER);
+        } else {
+            $this->addFlash('success', $billingResponse['message']);
+        }
+
+        return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER); 
     }
 }

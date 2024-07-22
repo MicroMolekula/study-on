@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}История транзакций/StudyOn{% endblock %}
+
+{% block body %}
+<h1 class="mt-3">История транзакций</h1>
+
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th scope="col">Дата оформления</th>
+            <th scope="col">Тип</th>
+            <th scope="col">Сумма</th>
+            <th scope="col">Курс</th>
+            <th scope="col">Дата окончания аренды</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transaction in transactions %}
+            <tr>
+                <th scope="row">{{ transaction.created_at }}</th>
+                <td>{{ transaction.type }}</td>
+                <td>{{ transaction.amount }}</td>
+                {% if transaction.course %}
+                    <td><a href="{{ path('app_course_show', {'id': transaction.course.id}) }}">{{ transaction.course.title }}</a></td>
+                {% else %}
+                    <td> - </td>
+                {% endif %}
+                {% if transaction.expires_at %}
+                    <td>{{ transaction.expires_at }}</td>
+                {% else %}
+                    <td> - </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

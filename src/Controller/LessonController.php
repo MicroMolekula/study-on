@@ -4,17 +4,23 @@ namespace App\Controller;
 
 use App\Entity\Lesson;
 use App\Form\LessonType;
-use App\Repository\LessonRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\Course;
+use App\Service\PurchaseControl;
+use Symfony\Component\Finder\Exception\AccessDeniedException;
 
 #[Route('/lessons')]
 class LessonController extends AbstractController
 {
+    public function __construct(
+        private PurchaseControl $purchaseControl,
+    ) {  
+    }
+
     #[Route('/new', name: 'app_lesson_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -41,6 +47,13 @@ class LessonController extends AbstractController
     #[Route('/{id}', name: 'app_lesson_show', methods: ['GET'])]
     public function show(Lesson $lesson): Response
     {
+        $course = $lesson->getCourse();
+        $courseData = $this->purchaseControl->getDataCourse($course);
+        
+        if (!$courseData['isPurchased'] && $courseData['type'] !== 'free' && !$this->isGranted('ROLE_SUPER_ADMIN')) {
+            throw new AccessDeniedException();
+        }
+
         return $this->render('lesson/show.html.twig', [
             'lesson' => $lesson,
         ]);

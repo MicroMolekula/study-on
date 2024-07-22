@@ -46,6 +46,7 @@ security:
         - {path: ^/lessons/\d+$, roles: IS_AUTHENTICATED_FULLY}
         - {path: ^/lessons/new, roles: ROLE_SUPER_ADMIN}
         - {path: ^/lessons/\d+/edit, roles: ROLE_SUPER_ADMIN}
+        - {path: ^/transactions, roles: IS_AUTHENTICATED_FULLY}
 
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

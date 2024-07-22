@@ -37,7 +37,7 @@ class BillingClient
         $response = curl_exec($curlHandler);
 
         if (curl_errno($curlHandler)) {
-            throw new BillingUnavailableException('Сервис времменно не доступен. Попробуйте позже.');
+            throw new BillingUnavailableException('Сервис времменно не доступен. Попробуйте позже.', 6);
         }
 
         curl_close($curlHandler);

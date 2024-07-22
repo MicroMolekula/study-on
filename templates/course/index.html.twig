@@ -13,8 +13,10 @@
                         <h5 class="card-title">{{ course.title }}</h5>
                         <p class="card-text">{{ course.description }}</p>
                         
-                        {% if course.type != 'free' %}
-                            <div>Цена: {{course.price}}</div>
+                        {% if course.isPurchased %}
+                             <div>{{ course.message }}</div>
+                        {% elseif course.type != 'free' %}
+                            <div>Цена: {{course.price}} ₽</div>
                         {% else %}
                             <div>Бесплатно</div>
                         {% endif %}
