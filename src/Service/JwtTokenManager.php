@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Exception\JwtManagerException;
+
 class JwtTokenManager
 {
     // В минутах
@@ -9,6 +11,9 @@ class JwtTokenManager
 
     private function decode(string $token): array
     {
+        if (count(explode('.', $token)) < 3){ 
+            throw new JwtManagerException(message: "Не корректный jwt токен");
+        }
         $jwtArr = array_combine(['header', 'payload', 'hash'], explode('.', $token));
         $payload = json_decode(base64_decode($jwtArr['payload']), true);
         return $payload;

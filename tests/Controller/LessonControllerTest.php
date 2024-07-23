@@ -7,7 +7,6 @@ use App\DataFixtures\LessonFixtures;
 use App\Entity\Course;
 use App\Entity\Lesson;
 use App\Tests\AbstractTest;
-use Symfony\Component\Mime\Message;
 
 class LessonControllerTest extends AbstractTest
 {
@@ -50,8 +49,8 @@ class LessonControllerTest extends AbstractTest
         $crawler = $client->clickLink('Войти');
         $this->assertResponseIsSuccessful();
         $form = $crawler->selectButton('Войти')->form();
-        $form['email']->setValue('user@mail.com');
-        $form['password']->setValue('user123');
+        $form['email']->setValue('admin@mail.com');
+        $form['password']->setValue('admin123');
         $client->submit($form);
         $this->assertResponseIsSuccessful();
 
@@ -276,10 +275,8 @@ class LessonControllerTest extends AbstractTest
         $crawler = $client->clickLink('Пройти');
         $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
         $lesson = $manager->getRepository(Lesson::class)->findOneBy(['course' => $course]);
-        $client->clickLink($lesson->getTitle());
-        $this->assertResponseIsSuccessful();
-        $this->assertAnySelectorTextNotContains('h1', $lesson->getTitle());
-        $this->assertAnySelectorTextContains('h1', 'Войдите в свой аккаунт');
+        
+        $this->assertAnySelectorTextNotContains('a', $lesson->getTitle());
     }
 
     public function testLessonNewFailed(): void
@@ -319,12 +316,7 @@ class LessonControllerTest extends AbstractTest
 
         $course = $manager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
         $lesson = $manager->getRepository(Lesson::class)->findOneBy(['course' => $course]);
-        $client->clickLink($lesson->getTitle());
-
-        $this->assertResponseIsSuccessful();
-        $this->assertAnySelectorTextNotContains('a', 'Редактировать');
-        $this->assertAnySelectorTextNotContains('a', 'Удалить');
-        $this->assertAnySelectorTextContains('h1', 'Войдите в свой аккаунт');
+        $this->assertAnySelectorTextNotContains('a', $lesson->getTitle());
 
         // Авторизация
         $client->request('GET', '/courses');

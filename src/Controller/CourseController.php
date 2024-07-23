@@ -62,8 +62,11 @@ class CourseController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-
-        $userBalance = $this->billingClient->userCurrent($user->getApiToken())['balance'];
+        if ($user !== null) {
+            $userBalance = $this->billingClient->userCurrent($user->getApiToken())['balance'];
+        } else {
+            $userBalance = 0;
+        }
 
         $course = $this->purchaseControl->getDataCourse($course);
 

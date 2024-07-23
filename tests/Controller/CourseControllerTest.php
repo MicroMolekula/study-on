@@ -39,6 +39,15 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->request('GET', '/courses');
         $this->assertResponseIsSuccessful();
 
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email'] = 'admin@mail.com';
+        $form['password'] = 'admin123';
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
         // Проверка правильного вывода количества уроков на всех страницах курсов
         foreach ($crawler->filter('div.card  a') as $link) {
             $crawler = $client->request('GET', $link->attributes['href']->value);
@@ -168,9 +177,11 @@ class CourseControllerTest extends AbstractTest
         $form['email'] = 'admin@mail.com';
         $form['password'] = 'admin123';
         $client->submit($form);
+        $client->request('GET', '/');
         $this->assertResponseIsSuccessful();
 
         $crawler = $client->clickLink('Пройти');
+        $this->assertResponseIsSuccessful();
         $courseTitle = $crawler->filter('h1')->text();
         $crawler = $client->clickLink('Редактировать');
         $this->assertResponseIsSuccessful();

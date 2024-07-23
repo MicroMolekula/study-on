@@ -3,6 +3,7 @@
 namespace App\Security;
 
 use App\Exception\BillingUnavailableException;
+use App\Exception\JwtManagerException;
 use App\Service\BillingClient;
 use App\Service\JwtTokenManager;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -74,14 +75,17 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', $user::class));
         }
-        
-        if ($this->jwtManager->isExpired($user->getApiToken())) {
-            try {
-                $newToken  = $this->billingClient->refreshToken($user->getRefreshToken())['token'];
-                $user->setApiToken($newToken);
-            } catch (BillingUnavailableException $ex) {
-                throw new UserNotFoundException();
+        try {
+            if ($this->jwtManager->isExpired($user->getApiToken())) {
+                try {
+                    $newToken  = $this->billingClient->refreshToken($user->getRefreshToken())['token'];
+                    $user->setApiToken($newToken);
+                } catch (BillingUnavailableException $ex) {
+                    throw new UserNotFoundException();
+                }
             }
+        } catch(JwtManagerException $e) {
+            throw new UserNotFoundException();
         }
 
         return $user;
