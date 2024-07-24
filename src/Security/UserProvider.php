@@ -41,7 +41,6 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
                 $user = new User();
                 $user->setEmail($responseBilling['username'])
                     ->setApiToken($identifier)
-                    ->setRefreshToken($responseBilling['refresh_token'])
                     ->setRoles($responseBilling['roles']);
                 return $user;
             }

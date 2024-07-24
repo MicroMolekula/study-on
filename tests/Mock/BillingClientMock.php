@@ -255,10 +255,10 @@ class BillingClientMock extends BillingClient
                 'message' => "Курс $courseCode не найден",
             ];
         }
-        $course = $courses[0];
+        $course = end($courses);
 
         $users = array_filter($this->dataUsers, fn($var) => $var['token'] === $token);
-        $user = end($user);
+        $user = end($users);
 
         if ($course['price'] > $user['balance']) {
             return [
@@ -268,7 +268,7 @@ class BillingClientMock extends BillingClient
         }
 
         $this->transactionsId += 1;
-        $this->dataUsers[$user['username']]['balance'] -= $course['price'];
+        $this->dataUsers[explode('@', $user['username'])[0]]['balance'] -= $course['price'];
         $this->dataTransactions[] = [
             'id' => $this->transactionsId,
             'created_at' => new \DateTimeImmutable(),

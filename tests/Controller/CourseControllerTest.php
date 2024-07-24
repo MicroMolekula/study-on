@@ -6,6 +6,7 @@ use App\DataFixtures\CourseFixtures;
 use App\DataFixtures\LessonFixtures;
 use App\Entity\Course;
 use App\Entity\Lesson;
+use App\Service\PurchaseControl;
 use App\Tests\AbstractTest;
 
 class CourseControllerTest extends AbstractTest
@@ -39,6 +40,11 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->request('GET', '/courses');
         $this->assertResponseIsSuccessful();
 
+        // Проверка есть ли не авторизованного пользователя кнопка покупки курса
+        $crawler = $client->clickLink('Пройти');
+        $this->assertAnySelectorTextNotContains('button', 'Арендовать');
+        $this->assertAnySelectorTextNotContains('button', 'Купить');
+
         // Авторизация
         $crawler = $client->clickLink('Войти');
         $this->assertResponseIsSuccessful();
@@ -62,6 +68,53 @@ class CourseControllerTest extends AbstractTest
         // Проверка статуса по прохождению по не существующему курсу
         $client->request('GET', '/courses/1111111');
         $this->assertResponseStatusCodeSame(404);
+    }
+
+    public function testCoursePay(): void
+    {
+        $client = $this->client;
+        $entityManager = static::getContainer()->get('doctrine')->getManager();
+        $this->replaceServiceBillingClient();
+        $purchaseControl = static::getContainer()->get(PurchaseControl::class);
+        $client->followRedirects();
+        $client->request('GET', '/courses/');
+
+        // Авторизация
+        $crawler = $client->clickLink('Войти');
+        $this->assertResponseIsSuccessful();
+        $form = $crawler->selectButton('Войти')->form();
+        $form['email'] = 'admin@mail.com';
+        $form['password'] = 'admin123';
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+
+        $crawler = $client->clickLink('Пройти');
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => $crawler->filter('h1')->text()]);
+        $courseData = $purchaseControl->getDataCourse($course);
+
+        if ($courseData['type'] === 'rent') {
+            $crawler = $client->clickLink('Арендовать');
+        } else if ($courseData['type'] === 'buy') {
+            $crawler = $client->clickLink('Купить');
+        } else {
+            $this->assertResponseIsSuccessful();
+            return;
+        }
+        $this->assertResponseIsSuccessful();
+        $this->assertAnySelectorTextContains('div.alert-success', 'Курс куплен');
+
+        // Проверка доступна ли кнопка покупки при не достаточных средствах на счету
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Физика']);
+        $crawler = $client->request('GET', '/courses/' . $course->getId());
+        $this->assertResponseIsSuccessful();
+        $this->assertTrue($crawler->selectButton('Купить')->getNode(0)->hasAttribute('disabled'));
+
+        
+        // Проверка покупки курса при недостаточных средствах на счету
+        $course = $entityManager->getRepository(Course::class)->findOneBy(['title' => 'Физика']);
+        $crawler = $client->request('GET', '/courses/' . $course->getId() . '/pay');
+        $this->assertResponseIsSuccessful();
+        $this->assertAnySelectorTextContains('div.alert', 'На вашем счету не достаточно средств');
     }
 
     // Проверка формы добавления нового курса при вводе пустых значений полей
