@@ -24,6 +24,7 @@
 /assets/vendor/
 ###< symfony/asset-mapper ###
 .vscode
+.idea
 ###> symfony/webpack-encore-bundle ###
 /node_modules/
 /public/build/
