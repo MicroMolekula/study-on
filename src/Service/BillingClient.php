@@ -2,12 +2,16 @@
 
 namespace App\Service;
 
+use App\Dto\CourseDto;
 use App\Exception\BillingUnavailableException;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Throwable;
 
 class BillingClient
 {
     public function __construct(
         private string $billingUrl,
+        private NormalizerInterface $normalizer,
     ) {
     }
 
@@ -31,10 +35,14 @@ class BillingClient
         if ($method == 'POST') {
             $curlOptions[CURLOPT_POSTFIELDS] = json_encode($data, JSON_UNESCAPED_UNICODE);
         }
-        
-        $curlHandler = curl_init();
-        curl_setopt_array($curlHandler, $curlOptions);
-        $response = curl_exec($curlHandler);
+
+        try {
+            $curlHandler = curl_init();
+            curl_setopt_array($curlHandler, $curlOptions);
+            $response = curl_exec($curlHandler);
+        } catch (\Exception $exception) {
+            throw new \Exception('Ошибка на стороне сервера');
+        }
 
         if (curl_errno($curlHandler)) {
             throw new BillingUnavailableException('Сервис времменно не доступен. Попробуйте позже.', 6);
@@ -84,7 +92,6 @@ class BillingClient
     public function getAllCourses(): array
     {
         return $this->request(
-            method: 'GET', 
             url: '/api/v1/courses/',
         );
     }
@@ -114,6 +121,30 @@ class BillingClient
         return $this->request(
             method: 'POST',
             url: "/api/v1/courses/$code/pay",
+            token: $token,
+        );
+    }
+
+    public function newCourse(string $token, CourseDto $course): array
+    {
+        $data = $this->normalizer->normalize($course, 'json');
+        unset($data['description']);
+        return $this->request(
+            method: 'POST',
+            url: '/api/v1/courses/',
+            data: $data,
+            token: $token,
+        );
+    }
+
+    public function editCourse(string $token, string $code, CourseDto $course): array
+    {
+        $data = $this->normalizer->normalize($course, 'json');
+        unset($data['description']);
+        return $this->request(
+            method: 'POST',
+            url: "/api/v1/courses/$code",
+            data: $data,
             token: $token,
         );
     }

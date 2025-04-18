@@ -2,13 +2,21 @@
 
 namespace App\Controller;
 
+use App\Dto\CourseDto;
 use App\Entity\Course;
+use App\Exception\CourseException;
+use App\Exception\CourseValidationException;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
+use App\Security\User;
 use App\Service\BillingClient;
+use App\Service\CourseService;
 use App\Service\PurchaseControl;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Form;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -19,6 +27,7 @@ class CourseController extends AbstractController
     public function __construct(
         private PurchaseControl $purchaseControl,
         private BillingClient $billingClient,
+        private CourseService $courseService,
     ) {
     }
 
@@ -38,15 +47,30 @@ class CourseController extends AbstractController
     }
 
     #[Route('/new', name: 'app_course_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request): Response
     {
-        $course = new Course();
+        $course = new CourseDto();
+        /** @var ?User $user */
+        $user = $this->getUser();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($course);
-            $entityManager->flush();
+        if ($form->isSubmitted() && $form->isValid() && $user !== null) {
+            try {
+                $result = $this->courseService->newCourse($course, $user);
+                if (!$result) {
+                    $form->addError(new FormError('Ошибка добавления курса'));
+                }
+            } catch (\Exception $exception) {
+                $this->processException($exception, $form);
+                $result = false;
+            }
+            if (!$result) {
+                return $this->render('course/new.html.twig', [
+                    'course' => $course,
+                    'form' => $form,
+                ]);
+            }
 
             return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -77,13 +101,34 @@ class CourseController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_course_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Course $course, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Course $courseEntity, EntityManagerInterface $entityManager): Response
     {
+        $course = $this->courseService->getFullCourse($courseEntity);
+        $code = $courseEntity->getCharsCode();
+        /** @var ?User $user */
+        $user = $this->getUser();
+        if ($course === null) {
+            return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
+        }
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
+            try {
+                $result = $this->courseService->editCourse($code, $course, $user);
+                if (!$result) {
+                    $form->addError(new FormError('Ошибка изменения курса'));
+                }
+            } catch (\Exception $exception) {
+                $this->processException($exception, $form);
+                $result = false;
+            }
+            if (!$result) {
+                return $this->render('course/edit.html.twig', [
+                    'course' => $course,
+                    'form' => $form,
+                ]);
+            }
 
             return $this->redirectToRoute('app_course_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -121,5 +166,16 @@ class CourseController extends AbstractController
         }
 
         return $this->redirectToRoute('app_course_show', ['id' => $course->getId()], Response::HTTP_SEE_OTHER); 
+    }
+
+    private function processException(\Exception $exception, FormInterface $form): void
+    {
+        if ($exception instanceof CourseValidationException) {
+            foreach ($exception->errors as $error) {
+                $form->get($error['property'])->addError(new FormError($error['message']));
+            }
+            return;
+        }
+        $form->addError(new FormError($exception->getMessage()));
     }
 }

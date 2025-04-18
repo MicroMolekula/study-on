@@ -53,14 +53,14 @@ class BillingAuthenticator extends AbstractLoginFormAuthenticator
                     throw new CustomUserMessageAuthenticationException('Сервис времменно не доступен. Попробуйте авторизоваться позднее.');
                 }
                 $user = new User();
-                if (isset($responseBilling['token'])) {
+                if (isset($responseBilling['token']) && $responseBilling['token'] !== '') {
                     $userData = $this->billingClient->userCurrent($responseBilling['token']);
                     $user->setEmail($userData['username'])
                         ->setApiToken($responseBilling['token'])
                         ->setRefreshToken($responseBilling['refresh_token'])
                         ->setRoles($userData['roles']);
                 } else {
-                    throw new CustomUserMessageAuthenticationException($responseBilling['message']);
+                    throw new CustomUserMessageAuthenticationException($responseBilling['message'] ?? 'Unknown error');
                 }
                 return $user;
             }),

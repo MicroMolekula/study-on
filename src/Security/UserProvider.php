@@ -6,7 +6,6 @@ use App\Exception\BillingUnavailableException;
 use App\Exception\JwtManagerException;
 use App\Service\BillingClient;
 use App\Service\JwtTokenManager;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -19,7 +18,6 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 
     public function __construct(
         private BillingClient $billingClient,
-        private Security $security,
         private JwtTokenManager $jwtManager,
     ) {
     }
