@@ -110,8 +110,19 @@ class BillingClient
         bool $skipExpired = false,
     ): array
     {
+        $queries = [];
+        if ($type) {
+            $queries[] = 'type=' . $type;
+        }
+        if ($courseCode) {
+            $queries[] = 'course_code=' . $courseCode;
+        }
+        if ($skipExpired) {
+            $queries[] = 'skip_expired=true';
+        }
+        $queryString = '?' . implode('&', $queries);
         return $this->request(
-            url: "/api/v1/transactions/?type=$type&course_code=$courseCode&skip_expired=$skipExpired",
+            url: "/api/v1/transactions/" . $queryString,
             token: $token,
         );
     }
