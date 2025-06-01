@@ -246,7 +246,7 @@ class BillingClientMock extends BillingClient
         return $transactions;
     }
 
-    // тест ci
+    // тест ci!
     public function payCourse(string $token, string $courseCode): array
     {
         $courses = array_filter($this->dataCourses, fn($var) => $var['code'] === $courseCode);
