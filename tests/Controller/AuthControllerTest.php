@@ -8,7 +8,7 @@ class AuthControllerTest extends AbstractTest
 {
     public function testAdminLogin(): void
     {
-        // тест ci
+        // тест ci!
         $client = $this->client;
         $this->replaceServiceBillingClient();
         $client->followRedirects();
